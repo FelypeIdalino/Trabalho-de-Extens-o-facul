@@ -56,7 +56,7 @@ ttk.Label(frame, text="Qual seu estado", font=("Arial", 14, "bold")).pack(pady=(
 combo_estados = ttk.Combobox(frame, values=estados, state="readonly")
 combo_estados.pack(pady=(2, 15))
 btn_enviar = ttk.Button(frame, text="Enviar Saudação", command=exibir_mensagem).pack(fill='x')
-
+#deus
 
 
 #frame Direito
