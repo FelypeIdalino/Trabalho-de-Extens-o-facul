@@ -66,7 +66,7 @@ def abrir_janela_Registro():
     ttk.Radiobutton(frame_radio, text="Sim", variable=var_peso, value=1).pack(side="left", padx=5)
     
     def salvar_bd():
-        nome = entry_nome.get().strip().capitalize()
+        nome = entry_nome.get().strip().title()
         preco_str = entry_preco.get().strip().replace(",", ".")
         peso_bool = var_peso.get()
         
@@ -168,7 +168,8 @@ def adicionar_ao_resumo(item, quantidade_ou_peso, valor_total):
     tree_resumo.insert("", "end", values=(nome, preco_formatado, quantidade_ou_peso))
     
     label_total.config(text=f"Total: R$ {preco_total_resumo:.2f}")
-        
+    
+    
         
         
 def abrir_janela(item):
@@ -220,6 +221,59 @@ def nova_venda():
     label_total.configure(text="Total: R$ 0.00")
 
 
+def delete_produto():
+    janela_delete = tk.Toplevel(root)
+    janela_delete.title("Deletar Produto")
+    janela_delete.geometry("450x300")
+    janela_delete.grab_set()
+    janela_delete.configure(bg="lightblue")
+    
+    label_delete = ttk.Label(janela_delete, text=("Qual o nome do produto que voce quer excluir?"), style="Titulo.TLabel")
+    label_delete.pack(pady=15)
+    
+    entry_delete = ttk.Entry(janela_delete, width=30, font=("arial", 14))
+    entry_delete.pack(pady=5)
+    
+    def deletar():
+        nome= entry_delete.get().strip().title()
+        
+        if not nome:
+            messagebox.showwarning("Aviso!", "Por favor insira um nome!")
+            return
+        
+        try:
+            conexao= sqlite3.connect("campestre.bd")
+            cursor = conexao.cursor()
+            
+            # busca= '''SELECT * FROM Produto 
+            # WHERE nome = ?'''
+            
+            cursor.execute("SELECT * FROM Produtos WHERE nome = ?", (nome,))
+            busca= cursor.fetchall()
+            
+            if not busca:
+                messagebox.showwarning("Aviso!", f"Não existe nenhum produto com o nome {nome}")
+                return
+            
+            
+            cursor.execute("DELETE FROM Produtos WHERE nome = ?;", (nome,))
+            
+            conexao.commit()
+            cursor.close()
+            conexao.close()
+            
+            messagebox.showinfo("Concluido!", f"o Produto {nome}, Foi Excluido com sucesso!")
+            carregar_produto()
+            janela_delete.destroy()
+        except sqlite3.Error as e:
+            messagebox.showwarning("Aviso!", f"Erro ao mexer no banco de dados! nome=[{nome}] erro: {e}")
+        except Exception as erro:
+            messagebox.showwarning("Aviso!", f"Ocorreu um erro inexperado!! erro:{erro}")
+            
+            
+    ttk.Button(janela_delete, text="Excluir Produto", command=deletar, style="btn.TButton").pack(pady=10)
+    
+
 preco_total_resumo= 0
 
 #Criação da Janela Principal
@@ -262,13 +316,14 @@ frame_button= ttk.Frame(frame, style="bg1.TFrame")
 frame_button.pack(pady=20)
 
 
-
-
 btn_registro = ttk.Button(frame_button, text="Registrar novo item", command=abrir_janela_Registro, style="btn.TButton")
 btn_registro.pack(side="left", padx=5, pady=5)
 
 btn_nova_venda= ttk.Button(frame_button, text="Nova Venda", command=nova_venda, style="btn.TButton")
 btn_nova_venda.pack(side="left", padx=5, pady=5)
+
+btn_delete= ttk.Button(frame_button, text="Excluir Produto", command=delete_produto, style="btn.TButton")
+btn_delete.pack(side="left", padx=5, pady=5)
 
 
 #frame Direito / Resumo
@@ -306,11 +361,12 @@ scrollbar.pack(side="right", fill="y")
 frame_totais= ttk.Frame(frame1, style="bg2.TFrame")
 frame_totais.pack(pady=20, fill="x")
 
-label_total= ttk.Label(frame_totais, text="Total: R$ 0,00", font=("Arial", 16, "bold"), style="bg2.TFrame")
-label_total.pack(side="bottom", pady=5)
+label_total= ttk.Label(frame_totais, text="Total: R$ 0,00", font=("Arial", 16, "bold"), style="bg2.TLabel")
+label_total.pack(side="top", pady=5)
 
 frame_pagamento = ttk.Frame(frame_totais, style="bg2.TFrame")
 frame_pagamento.pack(pady=10)
+
 
 ttk.Label(frame_pagamento, text="Valor recebido (R$):", font=("Arial", 12), style="bg2.TLabel").pack(side="left", padx=5)
 entry_valorpago = ttk.Entry(frame_pagamento, width=10, font=("Arial", 12), justify="center")
